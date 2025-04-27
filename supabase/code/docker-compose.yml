@@ -10,7 +10,7 @@ name: supabase
 services:
 
   studio:
-    image: supabase/studio:20250113-83c9420
+    image: supabase/studio:2025.04.21-sha-173cc56
     restart: unless-stopped
     healthcheck:
       test:
@@ -22,7 +22,7 @@ services:
             !== 200) throw new Error(r.status)})"
         ]
       timeout: 10s
-      interval: 5s
+      interval: 60s
       retries: 3
     depends_on:
       analytics:
@@ -50,7 +50,7 @@ services:
       # NEXT_ANALYTICS_BACKEND_PROVIDER: bigquery
 
   kong:
-    image: kong:2.8.1
+    image: kong:3.9.0
     restart: unless-stopped
     volumes:
       # https://github.com/supabase/supabase/issues/12661
@@ -75,7 +75,7 @@ services:
       /docker-entrypoint.sh kong docker-start'
 
   auth:
-    image: supabase/gotrue:v2.167.0
+    image: supabase/gotrue:v2.171.0
     restart: unless-stopped
     healthcheck:
       test:
@@ -88,7 +88,7 @@ services:
           "http://localhost:9999/health"
         ]
       timeout: 5s
-      interval: 5s
+      interval: 60s
       retries: 3
     depends_on:
       db:
@@ -157,11 +157,11 @@ services:
       # GOTRUE_HOOK_SEND_EMAIL_SECRETS: "v1,whsec_VGhpcyBpcyBhbiBleGFtcGxlIG9mIGEgc2hvcnRlciBCYXNlNjQgc3RyaW5n"
 
   rest:
-    image: postgrest/postgrest:v12.2.0
+    image: postgrest/postgrest:v12.2.11
     restart: unless-stopped
     depends_on:
       db:
-        # Disable this if you are using an external Postgres database
+        # https://github.com/PostgREST/postgrest - Disable this if you are using an external Postgres database
         condition: service_healthy
       analytics:
         condition: service_healthy
@@ -177,7 +177,7 @@ services:
 
   realtime:
     # This container name looks inconsistent but is correct because realtime constructs tenant id by parsing the subdomain
-    image: supabase/realtime:v2.34.7
+    image: supabase/realtime:v2.34.52
     restart: unless-stopped
     depends_on:
       db:
@@ -199,7 +199,7 @@ services:
           "http://localhost:4000/api/tenants/realtime-dev/health"
         ]
       timeout: 5s
-      interval: 5s
+      interval: 60s
       retries: 3
     environment:
       PORT: 4000
@@ -221,7 +221,7 @@ services:
 
   # To use S3 backed storage: docker compose -f docker-compose.yml -f docker-compose.s3.yml up
   storage:
-    image: supabase/storage-api:v1.14.5
+    image: supabase/storage-api:v1.22.7
     restart: unless-stopped
     volumes:
       - ./volumes/storage:/var/lib/storage:z
@@ -236,7 +236,7 @@ services:
           "http://storage:5000/status"
         ]
       timeout: 5s
-      interval: 5s
+      interval: 60s
       retries: 3
     depends_on:
       db:
@@ -270,7 +270,7 @@ services:
     healthcheck:
       test: [ "CMD", "imgproxy", "health" ]
       timeout: 5s
-      interval: 5s
+      interval: 60s
       retries: 3
     environment:
       IMGPROXY_BIND: ":5001"
@@ -279,7 +279,7 @@ services:
       IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
 
   meta:
-    image: supabase/postgres-meta:v0.84.2
+    image: supabase/postgres-meta:v0.88.9
     restart: unless-stopped
     depends_on:
       db:
@@ -296,7 +296,7 @@ services:
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   functions:
-    image: supabase/edge-runtime:v1.67.0
+    image: supabase/edge-runtime:v1.67.4
     restart: unless-stopped
     volumes:
       - ./volumes/functions:/home/deno/functions:Z
@@ -314,7 +314,7 @@ services:
     command: [ "start", "--main-service", "/home/deno/functions/main" ]
 
   analytics:
-    image: supabase/logflare:1.4.0
+    image: supabase/logflare:1.13.3
     restart: unless-stopped
     # Uncomment to use Big Query backend for analytics
     # volumes:
@@ -325,7 +325,7 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "http://localhost:4000/health" ]
       timeout: 5s
-      interval: 5s
+      interval: 60s
       retries: 10
     depends_on:
       db:
@@ -354,7 +354,7 @@ services:
 
       # Comment out everything below this point if you are using an external Postgres database
   db:
-    image: supabase/postgres:15.8.1.020
+    image: supabase/postgres:15.8.1.078
     restart: unless-stopped
     volumes:
       - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
@@ -376,7 +376,7 @@ services:
       - db-config:/etc/postgresql-custom
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
-      interval: 5s
+      interval: 60s
       timeout: 5s
       retries: 10
     depends_on:
@@ -402,7 +402,7 @@ services:
       ]
 
   vector:
-    image: timberio/vector:0.28.1-alpine
+    image: timberio/vector:0.46.1
     restart: unless-stopped
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro
@@ -418,7 +418,7 @@ services:
           "http://vector:9001/health"
         ]
       timeout: 5s
-      interval: 5s
+      interval: 60s
       retries: 3
     environment:
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
@@ -426,7 +426,7 @@ services:
 
   # Update the DATABASE_URL if you are using an external Postgres database
   supavisor:
-    image: supabase/supavisor:1.1.56
+    image: supabase/supavisor:2.5.1
     restart: unless-stopped
     volumes:
       - ./volumes/pooler/pooler.exs:/etc/pooler/pooler.exs:ro
@@ -441,7 +441,7 @@ services:
           "/dev/null",
           "http://127.0.0.1:4000/api/health"
         ]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
     depends_on:
