@@ -22,7 +22,7 @@ services:
             !== 200) throw new Error(r.status)})"
         ]
       timeout: 10s
-      interval: 60s
+      interval: 30s
       retries: 3
     depends_on:
       analytics:
@@ -50,7 +50,7 @@ services:
       # NEXT_ANALYTICS_BACKEND_PROVIDER: bigquery
 
   kong:
-    image: kong:3.9.0
+    image: kong:2.8.1
     restart: unless-stopped
     volumes:
       # https://github.com/supabase/supabase/issues/12661
@@ -88,7 +88,7 @@ services:
           "http://localhost:9999/health"
         ]
       timeout: 5s
-      interval: 60s
+      interval: 30s
       retries: 3
     depends_on:
       db:
@@ -199,7 +199,7 @@ services:
           "http://localhost:4000/api/tenants/realtime-dev/health"
         ]
       timeout: 5s
-      interval: 60s
+      interval: 30s
       retries: 3
     environment:
       PORT: 4000
@@ -236,7 +236,7 @@ services:
           "http://storage:5000/status"
         ]
       timeout: 5s
-      interval: 60s
+      interval: 30s
       retries: 3
     depends_on:
       db:
@@ -270,7 +270,7 @@ services:
     healthcheck:
       test: [ "CMD", "imgproxy", "health" ]
       timeout: 5s
-      interval: 60s
+      interval: 30s
       retries: 3
     environment:
       IMGPROXY_BIND: ":5001"
@@ -325,7 +325,7 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "http://localhost:4000/health" ]
       timeout: 5s
-      interval: 60s
+      interval: 30s
       retries: 10
     depends_on:
       db:
@@ -376,7 +376,7 @@ services:
       - db-config:/etc/postgresql-custom
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
-      interval: 60s
+      interval: 30s
       timeout: 5s
       retries: 10
     depends_on:
@@ -418,7 +418,7 @@ services:
           "http://vector:9001/health"
         ]
       timeout: 5s
-      interval: 60s
+      interval: 30s
       retries: 3
     environment:
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
@@ -441,7 +441,7 @@ services:
           "/dev/null",
           "http://127.0.0.1:4000/api/health"
         ]
-      interval: 60s
+      interval: 30s
       timeout: 5s
       retries: 5
     depends_on:
